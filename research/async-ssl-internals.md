@@ -2,69 +2,66 @@
 
     class SocketHandler:
         def __init__(self):
-        self.ssock: Optional[socket.socket]= None
-        self.loop= asyncio.get_running_loop()
-
+            self.ssock: Optional[socket.socket]= None
+            self.loop= asyncio.get_running_loop()
+    
         def connect(self, host:str, port:int):
-
-        context= ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-
-        try:
-            context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=password_bytes)
-        except FileNotFoundError as e:
-            raise e
-
-        sock= socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.setblocking(False)
-        sock.bind((host, port))
-        sock.listen(1)
-        print(f"\n[SERVER]: Server is listening on {host}:{port}")
-
-        try:
-            conn, addr= sock.accept()
-            print(f"\n[SERVER]: Unencrypted connection to {addr}")
-
-            self.ssock= context.wrap_socket(conn, server_side= True) 
-            print(f"\n[SERVER]: SSL Handshake is complete. Protocol: {self.ssock.version()}")
-            
-        except ConnectionAbortError as e:
-            raise e 
-        except BrokenPipeError as e:
-            raise e 
-        except Exception as e:
-            raise e 
+    
+            context= ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    
+            try:
+                context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=password_bytes)
+            except FileNotFoundError as e:
+                raise e
+    
+            sock= socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.setblocking(False)
+            sock.bind((host, port))
+            sock.listen(1)
+            print(f"\n[SERVER]: Server is listening on {host}:{port}")
+    
+            try:
+                conn, addr= sock.accept()
+                print(f"\n[SERVER]: Unencrypted connection to {addr}")
+    
+                self.ssock= context.wrap_socket(conn, server_side= True) 
+                print(f"\n[SERVER]: SSL Handshake is complete. Protocol: {self.ssock.version()}")
+                
+            except ConnectionAbortError as e:
+                raise e 
+            except BrokenPipeError as e:
+                raise e 
+            except Exception as e:
+                raise e 
 
         async def handle_connection(self):
-        if self.ssock is None:
-            print(f"\n[SERVER]: Connection is closed or unestablished.")
-            return 
-
-
-
-        try:
-            while True:
-                try:
-                    
-                    # Use the native recv_into. This performs decryption in-place into the buffer
-
-                except (ssl.SSLWantWriteError, ssl.SSLWantReadError):
-                    # IF the socket is empty, wait for it to be ready again
-                    # We yield control back to the loop to talk to the epoll or kqueue of the kernel unitl the FD is ready
-                    waiter= self.loop.create_future()
-                    fd= self.ssock.fileno()
-                    
-                    self.loop.add_reader(fd, lambda: waiter.done() or waiter.set_result(None))
+            if self.ssock is None:
+                print(f"\n[SERVER]: Connection is closed or unestablished.")
+                return 
+            try:
+                while True:
                     try:
-                        await waiter
-                    finally:
-                        self.loop.remove_reader(fd)
-                    continue
-
-        except ConnectionResetError:
-            raise
-        except Exception as e:
-            raise e
+                        
+                        # Use the native recv_into. This performs decryption in-place into the buffer
+    
+                    except (ssl.SSLWantWriteError, ssl.SSLWantReadError):
+                        # IF the socket is empty, wait for it to be ready again
+                        # We yield control back to the loop to talk to the epoll or kqueue of the kernel unitl the FD is ready
+                        waiter= self.loop.create_future()
+                        fd= self.ssock.fileno()
+                        
+                        self.loop.add_reader(fd, lambda: waiter.done() or waiter.set_result(None))
+                        try:
+                            await waiter
+                        finally:
+                            self.loop.remove_reader(fd)
+                        continue
+    
+            except ConnectionResetError:
+                raise
+            except Exception as e:
+                raise e
 
 
 * With a regular TCP socket, if there’s no data, you get a BlockingIOError. But SSL is a layer on top of TCP. To give you one byte of plaintext,
