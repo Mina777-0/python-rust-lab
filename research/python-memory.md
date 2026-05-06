@@ -11,10 +11,13 @@ i) __slots__: stores attributes in a fixed-size array (like a C struct) for memo
     each instance.
     ** Cannot dynamically add new attributes not defined in the __slots__ tuple at class definition time.
 
-ii) msgspec: If you are dealing with high-performance schemas (like JSON API responses), msgspec is currently the gold standard. 
+ii) msgspec: It is a powerful Python library for data validation and serialisation. It performs validation during decoding in a single pass, which avoids the 
+    overhead of creating intermediate Python objects. It is often described as "zero-cost" schema validation.
+    If you are dealing with high-performance schemas (like JSON API responses), msgspec is currently the gold standard. 
     It is significantly faster than Pydantic and even built-in json. It implements custom C-level structs for its types.
     Memory: It uses a specialized representation that is often smaller than standard Python objects.
     Speed: It performs validation and serialization in a single pass using highly optimized C code.
+    
 
 iii) typing.NamedTuple: If your class is essentially just a "bag of data" and doesn't need complex logic, use NamedTuple. It behaves like a tuple 
     (stored as a contiguous block in memory) but allows attribute access by name.
@@ -27,16 +30,16 @@ iv) Numpy is the nuclear option: It stores data in a single, contiguous block of
 
 # i) __slots__
 
-class PriceSchema:
-    __slots__= ('symbol_id', 'bid_price', 'ask_price', 'volume')
+    class PriceSchema:
+        __slots__= ('symbol_id', 'bid_price', 'ask_price', 'volume')
 
-    def __init__(self, symbol_id, bid_price, ask_price, volume):
-        self.symbol_id= symbol_id
-        self.bid_price= bid_price
-        self.ask_price= ask_price
-        self.volume= volume
+        def __init__(self, symbol_id, bid_price, ask_price, volume):
+            self.symbol_id= symbol_id
+            self.bid_price= bid_price
+            self.ask_price= ask_price
+            self.volume= volume
 
-    Or
+    # Or
 
     @dataclass(slots= True)
     class PriceSchema:
@@ -52,13 +55,13 @@ class PriceSchema:
   
 # ii) msgspec 
 
-class PriceSchema(msgspec.Struct, gc=False):
-    # gc=Fasle means no cyclic garbage collection. No use of __dict__
-    # implements custom C-level structs for its types. 
-    symbol_id:int 
-    bid_price:float
-    ask_price:float
-    volume:int 
+    class PriceSchema(msgspec.Struct, gc=False):
+        # gc=Fasle means no cyclic garbage collection. No use of __dict__
+        # implements custom C-level structs for its types. 
+        symbol_id:int 
+        bid_price:float
+        ask_price:float
+        volume:int 
 
 
 * msgspec.Struct goes a step further. It stores data in a compact, C-contiguous memory layout. When you access a field in msgspec, it’s often faster because it 
@@ -76,14 +79,16 @@ The Result: The memory is still freed as soon as you stop using the object, but 
 * The differnece between them is that the former creates data and the later does NOT create data, it's basically a schema
 * So to create data we use np.empty for the schema. After the data is created, it's treated as ndarray, victorized operation and memory efficiency 
 
-price_dtype= np.dtype([
-    ('symbol_id', "i4"),
-    ('bid_price', 'f8'),
-    ('ask_price', 'f8'),
-    ('volume', 'i4')
-])
+        price_dtype= np.dtype([
+            ('symbol_id', "i4"),
+            ('bid_price', 'f8'),
+            ('ask_price', 'f8'),
+            ('volume', 'i4')
+        ])
 
-packet_buffer= np.empty(1000000, dtype=price_dtype)
+        packet_buffer= np.empty(1000000, dtype=price_dtype) # This creates empty memory space
+        packet_buffer= np.zeros(1000000, dtype=price_dtype) # This fills the memory with zeros
+  
  
 
 # Numpy vs msgspec in memory management
