@@ -27,7 +27,7 @@ iv) Numpy is the nuclear option: It stores data in a single, contiguous block of
 
 # i) __slots__
 
-class PriceUpdateSchema:
+class PriceSchema:
     __slots__= ('symbol_id', 'bid_price', 'ask_price', 'volume')
 
     def __init__(self, symbol_id, bid_price, ask_price, volume):
@@ -36,8 +36,7 @@ class PriceUpdateSchema:
         self.ask_price= ask_price
         self.volume= volume
 
-
-# ii) msgspec instead of dataclasses and struct we can use it 
+* Or
 
 @dataclass(slots= True)
 class PriceSchema:
@@ -46,16 +45,13 @@ class PriceSchema:
     ask_price:float
     volume:int 
 
-    def pack(self):
-        return struct.pack(
-            '!IddQ',
-            self.symbol_id,
-            self.bid_price,
-            self.ask_price,
-            self.volume
-        )
+    
+        
+* A dataclass with slots=True eliminates the underlying __dict__ (saving memory), but the attributes are still Python objects managed by the Python runtime.
 
-# OR
+  
+# ii) msgspec 
+
 class PriceSchema(msgspec.Struct, gc=False):
     # gc=Fasle means no cyclic garbage collection. No use of __dict__
     # implements custom C-level structs for its types. 
@@ -65,7 +61,6 @@ class PriceSchema(msgspec.Struct, gc=False):
     volume:int 
 
 
-* A dataclass with slots=True eliminates the underlying __dict__ (saving memory), but the attributes are still Python objects managed by the Python runtime.
 * msgspec.Struct goes a step further. It stores data in a compact, C-contiguous memory layout. When you access a field in msgspec, it’s often faster because it 
 minimizes the pointer-chasing typical of standard Python objects.
 
@@ -89,8 +84,7 @@ price_dtype= np.dtype([
 ])
 
 packet_buffer= np.empty(1000000, dtype=price_dtype)
-
-
+ 
 
 # Numpy vs msgspec in memory management
 
