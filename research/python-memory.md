@@ -77,10 +77,10 @@ The Result: The memory is still freed as soon as you stop using the object, but 
 
 # iv) Numpy 
 
-# array= np.array()
-# schema= np.dtype()
-# The differnece between them is the former creates data and the later does NOT create data, it's basically a schema
-# So to create data we use np.empty for the schema. After the data is created, it's treated as ndarray, victorized operation and memory efficiency 
+array= np.array()
+schema= np.dtype()
+The differnece between them is the former creates data and the later does NOT create data, it's basically a schema
+So to create data we use np.empty for the schema. After the data is created, it's treated as ndarray, victorized operation and memory efficiency 
 
 price_dtype= np.dtype([
     ('symbol_id', "i4"),
