@@ -1,4 +1,4 @@
-
+# 64-bit processor between caches and RAM.
 A 64-bit processor (specifically x86-64 or modern ARM) does not divide the cache based on the 64-bit word size, but rather into fixed-size blocks called cache 
 lines, which are typically 64 bytes (512 bits) long. The processor divides memory into contiguous, 64-byte aligned chunks. When data is requested, the CPU 
 fetches the entire 64-byte block containing that data from main memory (RAM) and loads it into the cache.
@@ -102,15 +102,16 @@ It’s instantaneous because it's just a pointer re-interpretation.
 
 # Bytemuck crate 
 It is commonly used in graphics programming (e.g., passing data to wgpu or Vulkan), networking, and serialization, where you need to convert structs to 
-raw bytes ([u8]) or vice-versa. 
-It requires types to be #[repr(C)] or #[repr(transparent)] and not contain any padding bytes. 
+raw bytes ([u8]) or vice-versa. It requires types to be #[repr(C)] or #[repr(transparent)] and not contain any padding bytes. 
 
-This struct will FAIL bytemuck becuase Rust adds hidden "padding" bytes between the u8 and the u32 to align memory.
-struct Bad {
-    a: u8,
-    // (3 hidden bytes of garbage here)
-    b: u32,
-}
+* This struct will FAIL bytemuck becuase Rust adds hidden "padding" bytes between the u8 and the u32 to align memory.
+          
+        struct Bad {
+            a: u8,
+            // (3 hidden bytes of garbage here)
+            b: u32,
+        }
+  
 Those hidden bytes are "uninitialized garbage," bytemuck won't let you cast it to bytes because reading garbage memory is "Undefined Behavior" (dangerous). 
 This is why you see #[repr(C)] everywhere in the examples—it forces a predictable memory layout.
 That is why using Pod and Zeroable requires adding manual padding _pad[u8;3] along with #[repr(C)]. These added pads are not uninitialised garbage, they are 
@@ -139,17 +140,18 @@ cast_slice_mut          Cast &mut [A] into &mut [B].
 ... etc 
 
 Example: 
-use bytemuck::{Pod, Zeroable};
-
-#[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
-struct Vertex {
-    position: [f32; 3],
-    color: [f32; 4],
-}
-
-fn main() {
-    let vertex = Vertex { position: [0.0, 0.0, 0.0], color: [1.0, 1.0, 1.0, 1.0] };
-    // Safely cast the struct to a slice of bytes
-    let bytes: &[u8] = bytemuck::bytes_of(&vertex);
-}
+        
+    use bytemuck::{Pod, Zeroable};
+    
+    #[repr(C)]
+    #[derive(Copy, Clone, Pod, Zeroable)]
+    struct Vertex {
+        position: [f32; 3],
+        color: [f32; 4],
+    }
+    
+    fn main() {
+        let vertex = Vertex { position: [0.0, 0.0, 0.0], color: [1.0, 1.0, 1.0, 1.0] };
+        // Safely cast the struct to a slice of bytes
+        let bytes: &[u8] = bytemuck::bytes_of(&vertex);
+    }
