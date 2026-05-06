@@ -36,14 +36,14 @@ class PriceSchema:
         self.ask_price= ask_price
         self.volume= volume
 
-* Or
+    Or
 
-@dataclass(slots= True)
-class PriceSchema:
-    symbol_id:int 
-    bid_price:float 
-    ask_price:float
-    volume:int 
+    @dataclass(slots= True)
+    class PriceSchema:
+        symbol_id:int 
+        bid_price:float 
+        ask_price:float
+        volume:int 
 
     
         
