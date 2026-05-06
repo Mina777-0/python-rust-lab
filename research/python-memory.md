@@ -1,4 +1,4 @@
-In Python, memory is managed in two ways:
+# In Python, memory is managed in two ways:
 - Reference Counting: When an object’s count hits zero, it’s deleted immediately. This always happens.
 - Cyclic GC: Python periodically scans objects to find "circular references" (e.g., Object A points to B, and B points to A). This scan takes time and 
 adds a memory overhead (32 bytes) to every object. Cyclic GC is only in case of list, dict, set, class instance (self uses __dict__ to store elements). 
