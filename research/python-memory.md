@@ -120,10 +120,10 @@ Efficiency          Low (Pointer Chasing)           High (SIMD/Vectorization)
 # List vs Numpy and Victorization 
 
 * A list in Python isn't a linked list it's a dynamic array of pointers 
-arr = [1, 2, 3]
-[ ptr ] -> PyLongObject(1)
-[ ptr ] -> PyLongObject(2)
-[ ptr ] -> PyLongObject(3)
+* arr = [1, 2, 3]
+* [ ptr ] -> PyLongObject(1)
+* [ ptr ] -> PyLongObject(2)
+* [ ptr ] -> PyLongObject(3)
 
 
 All objects in Python (str, int, dict, function, class) for instance an integer isn't just stored as int with 2 bytes or 4 bytes, there is:
@@ -204,9 +204,9 @@ Numpy: no pyobject, no pointers just contiguous block of C array or Rust vec<f64
 
 
 
-# referecnce counting and smart pointers 
+# reference counting and smart pointers 
 
-Pointer in general is a variable that stores memory address of another variable which contains the actual data. It allwos only borrowing those data not own them
+A pointer in general is a variable that stores memory address of another variable which contains the actual data. It allwos only borrowing those data not own them
 the same concept in Rust. Smart pointers on the other hand allow data ownership by using reference counting. This the concept of Python pointers.
 Like array is an array of pointers; smart pointers that allow data they point at to be owned while keeping track through reference counting.
 
