@@ -79,20 +79,15 @@ using tokio::task::yield_now().await
 
 # Mapping asyncio to Tokio
 
-    Python asyncio Component                Tokio (Rust) Equivalent                 Description
-
-    asyncio.create_task(coro)               tokio::spawn(future)                    Spawns a concurrent background task on the runtime.
-
-    loop.create_future()                    tokio::sync::oneshot::channel()         Creates a one-time producer/consumer channel acting as a Future.
-
-    loop.add_reader(fd, callback)           tokio::io::unix::AsyncFd                Registers a raw file descriptor to monitor read readiness via Epoll/Kqueue.
-
-    asyncio.gather(*aws)                    tokio::join! or                         Waits for multiple asynchronous operations to complete concurrently.
-                                            futures::future::join_all   
-
-    asyncio.sleep(delay)                    tokio::time::sleep(duration)            Pauses execution asynchronously without blocking the OS thread.
-
-    asyncio.Queue                           tokio::sync::mpsc                       Provides an asynchronous multi-producer, single-consumer channel.
+| Python asyncio Component | Tokio (Rust) Equivalent | Description
+| --- | --- | --- |
+| asyncio.create_task(coro) | tokio::spawn(future) | Spawns a concurrent background task on the runtime |
+| loop.create_future() | tokio::sync::oneshot::channel() | Creates a one-time producer/consumer channel acting as a Future |
+| loop.add_reader(fd, callback) | tokio::io::unix::AsyncFd | Registers a raw file descriptor to monitor read readiness via Epoll/Kqueue |
+| asyncio.gather(*aws) | tokio::join! or | Waits for multiple asynchronous operations to complete concurrently |
+| | futures::future::join_all | | 
+| asyncio.sleep(delay) | tokio::time::sleep(duration) | Pauses execution asynchronously without blocking the OS thread |
+| asyncio.Queue | tokio::sync::mpsc | Provides an asynchronous multi-producer, single-consumer channel |
 
 
 # References:
