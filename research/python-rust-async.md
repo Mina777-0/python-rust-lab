@@ -96,28 +96,30 @@ using tokio::task::yield_now().await
 * Asyncio:
 It all happens at the OS level. Once we bind or create a listener on a port (i.e. 8080), the OS listens on this port for any TCP handhsakes and later packages   to send to the corresponding process. 
 
-    async def start_serer():
-        ser_scoket= socket.socket(family=socket.AF_INET, type= socket.SOCK_STREAM)
-        ser_scoket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        ser_scoket.setblocking(False)
-        ser_scoket.bind(("127.0.0.1", 8080))
-        ser_scoket.listen(1)
+        async def start_serer():
+            ser_scoket= socket.socket(family=socket.AF_INET, type= socket.SOCK_STREAM)
+            ser_scoket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            ser_scoket.setblocking(False)
+            ser_scoket.bind(("127.0.0.1", 8080))
+            ser_scoket.listen(1)
     
-        loop= asyncio.get_running_loop()
+            loop= asyncio.get_running_loop()
 
-* Accepting connection is handled by the event-loop.
-        cl_sock, addr= await loop.sock_accept(sock)
+            # Accepting connection is handled by the event-loop.
+            cl_sock, addr= await loop.sock_accept(sock)
 
-Here the OS kernel creates a new socket with FD (unique file descriptor identifier). The listening socket is non-blocking, the application can poll it or ask the OS to notify it when the connection is ready. On the other hand event-loop creates a Future object and invokes a reader
-        # loop.add_reader(fd, callback) 
-        # this reader takes the fd of the listening socket and add the Future object as callback 
-        waker= loop.ceate_future()
-        fd= ser_sock.fileno()
-        loop.add_reader(fd, lambda: waker.set_result(None) or waker.done())
-        try:
-            await waiter 
-        finally:
-            loop.remove_reader(fd)
+  
+  Here the OS kernel creates a new socket with FD (unique file descriptor identifier). The listening socket is non-blocking, the application can poll it or ask the OS to             notify it when the connection is ready. On the other hand event-loop creates a Future object and invokes a reader
+          
+            # loop.add_reader(fd, callback) 
+            # this reader takes the fd of the listening socket and add the Future object as callback 
+            waker= loop.ceate_future()
+            fd= ser_sock.fileno()
+            loop.add_reader(fd, lambda: waker.set_result(None) or waker.done())
+            try:
+                await waiter 
+            finally:
+                loop.remove_reader(fd)
 
 - Event loop puts the coroutine to sleep. The socket remains registered on the OS Kernel's interest list.
 - Event loop goes to handle other tasks in the queue
@@ -126,23 +128,24 @@ Here the OS kernel creates a new socket with FD (unique file descriptor identifi
 
 
 * Tokio:
-
-    async fn start_server() -> Result<(), io::Error>{
-        let listener= TcpListener::bind("127.0.0.1:8080").await?;
-        let (cl_sock, addr)= listener.accept().await?;
-    }
+  
+        async fn start_server() -> Result<(), io::Error>{
+            let listener= TcpListener::bind("127.0.0.1:8080").await?;
+            let (cl_sock, addr)= listener.accept().await?;
+        }
 
 * The listener or the cl_sock are both non-blocking because Tokio uses O_NONBLOCK flag on fd.
-Here Tokio create a Future but a Future trait 
-    trait Future {
-        type Output;
-        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>;
-    }
+Here Tokio create a Future but a Future trait
 
-    pub enum Poll<T> {
-        Ready(T),
-        Pending,
-    }
+        trait Future {
+            type Output;
+            fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>;
+        }
+
+        pub enum Poll<T> {
+            Ready(T),
+            Pending,
+        }
 
 Tokio calls .poll() on this future
 Returns Poll::Pending
