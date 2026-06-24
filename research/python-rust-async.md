@@ -90,9 +90,89 @@ using tokio::task::yield_now().await
 | asyncio.Queue | tokio::sync::mpsc | Provides an asynchronous multi-producer, single-consumer channel |
 
 
+
+# Async TCP socket 
+
+* Asyncio:
+It all happens at the OS level. Once we bind or create a listener on a port (i.e. 8080), the OS listens on this port for any TCP handhsakes and later packages   to send to the corresponding process. 
+
+    async def start_serer():
+        ser_scoket= socket.socket(family=socket.AF_INET, type= socket.SOCK_STREAM)
+        ser_scoket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        ser_scoket.setblocking(False)
+        ser_scoket.bind(("127.0.0.1", 8080))
+        ser_scoket.listen(1)
+    
+        loop= asyncio.get_running_loop()
+
+* Accepting connection is handled by the event-loop.
+        cl_sock, addr= await loop.sock_accept(sock)
+
+Here the OS kernel creates a new socket with FD (unique file descriptor identifier). The listening socket is non-blocking, the application can poll it or ask the OS to notify it when the connection is ready. On the other hand event-loop creates a Future object and invokes a reader
+        # loop.add_reader(fd, callback) 
+        # this reader takes the fd of the listening socket and add the Future object as callback 
+        waker= loop.ceate_future()
+        fd= ser_sock.fileno()
+        loop.add_reader(fd, lambda: waker.set_result(None) or waker.done())
+        try:
+            await waiter 
+        finally:
+            loop.remove_reader(fd)
+
+- Event loop puts the coroutine to sleep. The socket remains registered on the OS Kernel's interest list.
+- Event loop goes to handle other tasks in the queue
+- When the OS socket recieves is ready, it notify the event-loop. It put the Future obj to be executed and marked as done().
+- It accpets the handshake and puts it in the queue to be handled 
+
+
+* Tokio:
+
+    async fn start_server() -> Result<(), io::Error>{
+        let listener= TcpListener::bind("127.0.0.1:8080").await?;
+        let (cl_sock, addr)= listener.accept().await?;
+    }
+
+* The listener or the cl_sock are both non-blocking because Tokio uses O_NONBLOCK flag on fd.
+Here Tokio create a Future but a Future trait 
+    trait Future {
+        type Output;
+        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>;
+    }
+
+    pub enum Poll<T> {
+        Ready(T),
+        Pending,
+    }
+
+Tokio calls .poll() on this future
+Returns Poll::Pending
+Calls Reactor::register_fd() to register the socket FD with epoll
+Stores the Waker to be notified later
+The task is paused (not executed again until woken up)
+
+Later:
+The Reactor calls epoll_wait() in a loop
+When the socket becomes readable, the OS notifies the reactor
+The stored Waker is called → waker.wake()
+The task is placed back in the async runtime’s queue and is polled again
+This time, .poll() returns Poll::Ready and handshake is done.
+
+
+| asyncio | Tokio | Discription |
+| --- | --- | --- |
+| .add_reader(fd, cb) | Reactor::register_fd(fd, waker) | register the FD with epoll/Kqueue so the runtime can safely yield execution |
+| future.set_result(None) | waker.wake() | Invoke OS epoll_wait() detect readiness. inform the executor to schedue the task |
+| remove_reader(fd) | Drop | clear the FD from the monitoring list |
+| future.done() == True | Poll::Ready(Result) | Signal the executioner that the process is completely processed |
+
+
+
+
+
 # References:
 
     https://medium.com/@OlegKubrakov/practical-guide-to-async-rust-and-tokio-99e818c11965
     https://dev.to/_56d7718cea8fe00ec1610/understanding-async-socket-handling-in-rust-from-tcp-request-to-waker-wake-up-19le
     https://doc.rust-lang.org/book/ch17-01-futures-and-syntax.html
     https://tokio.rs/tokio/tutorial/spawning
+    https://dev.to/_56d7718cea8fe00ec1610/understanding-async-socket-handling-in-rust-from-tcp-request-to-waker-wake-up-19le
