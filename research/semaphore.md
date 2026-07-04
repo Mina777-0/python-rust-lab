@@ -1,6 +1,6 @@
 # Semaphore Between Pyhton and Rust
 
-* Have you ever faced a need to handle the traffic for thousands of concurrent operations? API requests limits, database access connections, or external services. Semaphore is the
+# Have you ever faced a need to handle the traffic for thousands of concurrent operations? API requests limits, database access connections, or external services. Semaphore is the
   magic that can make this possible. It works as a traffic light controller for concurrent operations by allowing a certain number of operations to execute simultaneouly.
 
 * Traffic light works on a timer, allow as many cars as possible to pass cbefore the red light stops any additional car from passing. A Semaphore works more intelligently. It is
@@ -178,11 +178,11 @@
         
         }
 
-Sempahore.acquire() returns SemaphorePermit<'a> so its life time is bound to the semaphore that created it.
-Semaphore.acquire_owned() return OwnedSemaphorePermit its life time is static.
+* Sempahore.acquire() returns SemaphorePermit<'a> so its life time is bound to the semaphore that created it.
+* Semaphore.acquire_owned() return OwnedSemaphorePermit its life time is static.
 
 
 # References:
-https://medium.com/@mr.sourav.raj/mastering-asyncio-semaphores-in-python-a-complete-guide-to-concurrency-control-6b4dd940e10e
-https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html
+- https://medium.com/@mr.sourav.raj/mastering-asyncio-semaphores-in-python-a-complete-guide-to-concurrency-control-6b4dd940e10e
+- https://docs.rs/tokio/latest/tokio/sync/struct.Semaphore.html
 
