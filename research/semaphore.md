@@ -1,6 +1,6 @@
 # Semaphore Between Pyhton and Rust
 
-# Have you ever faced a need to handle the traffic for thousands of concurrent operations? API requests limits, database access connections, or external services. Semaphore is the
+* Have you ever faced a need to handle the traffic for thousands of concurrent operations? API requests limits, database access connections, or external services. Semaphore is the
   magic that can make this possible. It works as a traffic light controller for concurrent operations by allowing a certain number of operations to execute simultaneouly.
 
 * Traffic light works on a timer, allow as many cars as possible to pass cbefore the red light stops any additional car from passing. A Semaphore works more intelligently. It is
