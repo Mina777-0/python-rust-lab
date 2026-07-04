@@ -12,3 +12,4 @@ pieces of information scattered across multiple sources.
 *   [Python Internals](./research/python-internals.md): `__slots__` vs `msgspec` vs `Numpy` and the impact on memory footprint.
 *   [Networking Internals](./research/async-ssl-internals.md): `async` vs `TCP` vs `SSL` and the impact on network sockets
 *   [Async_Programming](./research/python-rust-async.md): `async await`, `runtime`, `scheduling` mapping between asyncio and Tokio
+*   [Async_Semaphore](./research/semaphore.md): `acquire`, `release`, mapping between Python/Rust
