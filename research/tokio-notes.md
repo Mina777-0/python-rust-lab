@@ -1,6 +1,6 @@
 # How Does Tokio Work
 
-* Tokio runs on top of your computer's operating system threads. When you start a standard Tokio application, it launches a multi-threaded work-stealing runtime
+Tokio runs on top of your computer's operating system threads. When you start a standard Tokio application, it launches a multi-threaded work-stealing runtime
 The Main Thread: This is the primary thread running your async fn main(). It kicks off the application.Background Threads (Worker Threads): Tokio automatically 
 spawns a pool of extra threads in the background (usually equal to the number of CPU cores your computer has).When you call tokio::spawn, you are taking a task 
 off the main thread and handing it to Tokio's scheduler. Tokio then assigns that task to one of these background worker threads to execute independently. 
